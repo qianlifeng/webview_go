@@ -718,7 +718,8 @@ enum NSWindowStyleMask : NSUInteger {
 };
 
 enum NSApplicationActivationPolicy : NSInteger {
-  NSApplicationActivationPolicyRegular = 0
+  NSApplicationActivationPolicyRegular = 0,
+  NSApplicationActivationPolicyAccessory = 1,
 };
 
 enum WKUserScriptInjectionTime : NSInteger {
@@ -981,8 +982,7 @@ private:
     if (!is_app_bundled()) {
       // "setActivationPolicy:" must be invoked before
       // "activateIgnoringOtherApps:" for activation to work.
-      objc::msg_send<void>(app, "setActivationPolicy:"_sel,
-                           NSApplicationActivationPolicyRegular);
+      objc::msg_send<void>(app, "setActivationPolicy:"_sel, NSApplicationActivationPolicyAccessory);
       // Activate the app regardless of other active apps.
       // This can be obtrusive so we only do it when necessary.
       objc::msg_send<void>(app, "activateIgnoringOtherApps:"_sel, YES);
@@ -1074,6 +1074,12 @@ private:
       )"");
     objc::msg_send<void>(m_window, "setContentView:"_sel, m_webview);
     objc::msg_send<void>(m_window, "makeKeyAndOrderFront:"_sel, nullptr);
+
+    //set setCollectionBehavior to NSWindowCollectionBehaviorCanJoinAllSpaces to make sure the window is joinable on all spaces
+    objc::msg_send<void>(m_window, "setCollectionBehavior:"_sel, 1 << 0);
+
+    //set level to main menu
+    objc::msg_send<void>(m_window, "setLevel:"_sel, 1000 + 1);
   }
   int on_application_should_terminate(id /*delegate*/, id app) {
     dispatch([app, this] {
